@@ -26,11 +26,11 @@ function ClosingArtwork() {
         className="closing-knight"
         src="/images/knight-art.png"
         alt=""
-        width="942"
+        width="941"
         height="1672"
         loading="lazy"
-        initial={reduced ? false : { opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={reduced ? false : { opacity: 0 }}
+        whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       />
