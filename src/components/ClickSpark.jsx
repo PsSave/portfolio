@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
+import { useReducedMotion } from "motion/react";
 
 const ClickSpark = ({
   sparkColor = "#fff",
@@ -12,7 +13,8 @@ const ClickSpark = ({
 }) => {
   const canvasRef = useRef(null);
   const sparksRef = useRef([]);
-  const startTimeRef = useRef(null);
+  const startAnimationRef = useRef(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,20 +62,19 @@ const ClickSpark = ({
           return t * (2 - t);
       }
     },
-    [easing]
+    [easing],
   );
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    if (reducedMotion) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    let animationId;
+    let animationId = null;
 
     const draw = (timestamp) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       sparksRef.current = sparksRef.current.filter((spark) => {
@@ -103,13 +104,17 @@ const ClickSpark = ({
         return true;
       });
 
-      animationId = requestAnimationFrame(draw);
+      animationId = sparksRef.current.length ? requestAnimationFrame(draw) : null;
     };
 
-    animationId = requestAnimationFrame(draw);
+    startAnimationRef.current = () => {
+      if (animationId === null) animationId = requestAnimationFrame(draw);
+    };
 
     return () => {
-      cancelAnimationFrame(animationId);
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      startAnimationRef.current = null;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
   }, [
     sparkColor,
@@ -119,9 +124,11 @@ const ClickSpark = ({
     duration,
     easeFunc,
     extraScale,
+    reducedMotion,
   ]);
 
   const handleClick = (e) => {
+    if (reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -137,11 +144,13 @@ const ClickSpark = ({
     }));
 
     sparksRef.current.push(...newSparks);
+    startAnimationRef.current?.();
   };
 
   return (
     <div className="relative w-full h-full" onClick={handleClick}>
       <canvas
+        aria-hidden="true"
         ref={canvasRef}
         className="w-full h-full block absolute top-0 left-0 select-none pointer-events-none"
       />

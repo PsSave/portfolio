@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, stagger, useAnimate } from "framer-motion";
+import { motion as Motion, stagger, useAnimate, useReducedMotion } from "motion/react";
 
 const LetterSwapForward = ({
   label,
@@ -17,10 +17,11 @@ const LetterSwapForward = ({
   ...props
 }) => {
   const [scope, animate] = useAnimate();
+  const reduced = useReducedMotion();
   const [blocked, setBlocked] = useState(false);
 
   const hoverStart = () => {
-    if (blocked) return;
+    if (blocked || reduced) return;
 
     setBlocked(true);
 
@@ -32,11 +33,7 @@ const LetterSwapForward = ({
       }),
     });
 
-    animate(
-      ".letter",
-      { y: reverse ? "100%" : "-100%" },
-      mergeTransition(transition)
-    ).then(() => {
+    animate(".letter", { y: reverse ? "100%" : "-100%" }, mergeTransition(transition)).then(() => {
       animate(
         ".letter",
         {
@@ -44,7 +41,7 @@ const LetterSwapForward = ({
         },
         {
           duration: 0,
-        }
+        },
       ).then(() => {
         setBlocked(false);
       });
@@ -55,7 +52,7 @@ const LetterSwapForward = ({
       {
         top: "0%",
       },
-      mergeTransition(transition)
+      mergeTransition(transition),
     ).then(() => {
       animate(
         ".letter-secondary",
@@ -64,7 +61,7 @@ const LetterSwapForward = ({
         },
         {
           duration: 0,
-        }
+        },
       );
     });
   };
@@ -81,20 +78,16 @@ const LetterSwapForward = ({
 
       {label.split("").map((letter, i) => {
         return (
-          <span
-            className="whitespace-pre relative flex"
-            key={i}
-            aria-hidden={true}
-          >
-            <motion.span className={`relative letter`} style={{ top: 0 }}>
+          <span className="whitespace-pre relative flex" key={i} aria-hidden={true}>
+            <Motion.span className={`relative letter`} style={{ top: 0 }}>
               {letter}
-            </motion.span>
-            <motion.span
+            </Motion.span>
+            <Motion.span
               className="absolute letter-secondary "
               style={{ top: reverse ? "-100%" : "100%" }}
             >
               {letter}
-            </motion.span>
+            </Motion.span>
           </span>
         );
       })}
